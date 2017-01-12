@@ -4,6 +4,7 @@ const nunjucks = require('express-nunjucks')
 const path = require('path')
 const favicon = require('serve-favicon')
 const bodyParser = require('body-parser')
+const expressSanitized = require('express-sanitized')
 const helmet = require('helmet')
 const compression = require('compression')
 const i18n = require('i18n')
@@ -22,11 +23,27 @@ app.use(compression())
 
 // Set security headers.
 app.use(helmet())
+app.use(helmet.hsts({ maxAge: 5184000 }))
+
+// Configure Content Security Policy
+// Hashes for inline Gov Template script entries
+app.use(helmet.contentSecurityPolicy({
+  directives: {
+    defaultSrc: ["'self'"],
+    scriptSrc: ["'self'",
+      'www.google-analytics.com',
+      "'sha256-+6WnXIl4mbFTCARd8N3COQmT3bJJmo32N8q8ZSQAIcU='",
+      "'sha256-G29/qSW/JHHANtFhlrZVDZW1HOkCDRc78ggbqwwIJ2g='"],
+    styleSrc: ["'self'"],
+    fontSrc: ['data:'],
+    imgSrc: ["'self'", 'www.google-analytics.com']
+  }
+}))
 
 var packageJson = require('../package.json')
 var developmentMode = app.get('env') === 'development'
 var releaseVersion = packageJson.version
-var serviceName = 'Assisted Prison Visit Service'
+var serviceName = 'Get help with prison visits'
 
 app.set('view engine', 'html')
 app.set('views', path.join(__dirname, 'views'))
@@ -46,7 +63,7 @@ if (config.BASIC_AUTH_ENABLED === 'true') {
   app.use(function (req, res, next) {
     var credentials = auth(req)
 
-    if (req.url === '' || req.url === '/') {
+    if (req.url === '' || req.url === '/' || req.url === '/status') {
       next() // must leave root url free for Azure gateway
     } else {
       if (!credentials ||
@@ -64,6 +81,7 @@ if (config.BASIC_AUTH_ENABLED === 'true') {
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
+app.use(expressSanitized())
 
 // Send assetPath to all views.
 app.use(function (req, res, next) {
@@ -99,10 +117,10 @@ app.use(function (req, res, next) {
 })
 
 // Use cookie parser middleware (required for csurf)
-app.use(cookieParser())
+app.use(cookieParser(config.EXT_APPLICATION_SECRET, { httpOnly: true, secure: config.EXT_SECURE_COOKIE === 'true' }))
 
 // Check for valid CSRF tokens on state-changing methods.
-var csrfProtection = csurf({ cookie: true })
+var csrfProtection = csurf({ cookie: { httpOnly: true, secure: config.EXT_SECURE_COOKIE === 'true' } })
 
 app.use(function (req, res, next) {
   csrfExcludeRoutes.forEach(function (route) {

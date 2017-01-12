@@ -1,0 +1,70 @@
+{% extends "includes/layout.html" %}
+
+{% block page_title %}
+  {% if serviceName %} {{ serviceName }} {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<main id="content" role="main">
+
+  {% include "includes/phase_banner_beta.html" %}
+
+  <div class="grid-row">
+    <div class="column-two-thirds">
+
+      {% include "includes/validation-error-messages.html" %}
+
+      <h2 class="heading-large">
+        Do you want to claim expenses for a carer?
+      </h2>
+
+      <form action="/apply/{{ claimType }}/eligibility/{{ referenceId }}/claim/{{ claimId }}/has-escort" method="post">
+
+        <div id="has-escort" class="form-group {% if errors['has-escort'][0] %} error {% endif %}">
+
+          <p>You can claim travel and expenses for someone who helped you if you are 75 or over, or have a serious medical condition.</p>
+
+          <p>We may ask later for evidence of any medical condition.</p>
+
+          {% if errors['has-escort'][0] %}
+            <span class="error-message">{{ errors['has-escort'][0] }}</span>
+          {% endif %}
+
+          <fieldset>
+
+            <label for="escort-yes" class="block-label inline">
+              <input id="escort-yes"
+                     type="radio"
+                     name="has-escort"
+                     value="yes"
+                     {% if claim['has-escort'] == 'yes' %} checked {% endif %}>
+              Yes
+            </label>
+            <label for="escort-no" class="block-label inline">
+              <input id="escort-no"
+                     type="radio"
+                     name="has-escort"
+                     value="no"
+                     {% if claim['has-escort'] == 'no' %} checked {% endif %}>
+              No
+            </label>
+
+          </fieldset>
+
+        </div>
+
+        {% include "partials/csrf-hidden-input.html" %}
+
+        <input id="has-escort-submit"
+               type="submit"
+               value="Continue"
+               class="button">
+      </form>
+
+    </div>
+  </div>
+
+</main>
+
+{% endblock %}

@@ -1,8 +1,8 @@
-const expect = require('chai').expect
 const routeHelper = require('../../../../../helpers/routes/route-helper')
 const supertest = require('supertest')
 const proxyquire = require('proxyquire')
 const sinon = require('sinon')
+const encrypt = require('../../../../../../app/services/helpers/encrypt')
 require('sinon-bluebird')
 
 const ValidationError = require('../../../../../../app/services/errors/validation-error')
@@ -11,10 +11,12 @@ describe('routes/apply/eligibility/new-claim/journey-information', function () {
   const REFERENCE = 'JOURNEY'
   const ELIGIBILITYID = '1234'
   const REFERENCEID = `${REFERENCE}-${ELIGIBILITYID}`
+  const ENCRYPTED_REFERENCEID = encrypt(REFERENCEID)
   const CLAIM_ID = '123'
   const CLAIM_TYPE = 'first-time'
-  const ROUTE = `/apply/${CLAIM_TYPE}/eligibility/${REFERENCEID}/new-claim/past`
-  const REPEAT_DUPLICATE_ROUTE = `/apply/repeat-duplicate/eligibility/${REFERENCEID}/new-claim/past`
+  const ADVANCE_OR_PAST = 'advance'
+  const ROUTE = `/apply/${CLAIM_TYPE}/eligibility/${ENCRYPTED_REFERENCEID}/new-claim/${ADVANCE_OR_PAST}`
+  const REPEAT_DUPLICATE_ROUTE = `/apply/repeat-duplicate/eligibility/${ENCRYPTED_REFERENCEID}/new-claim/${ADVANCE_OR_PAST}`
 
   var app
 
@@ -52,22 +54,6 @@ describe('routes/apply/eligibility/new-claim/journey-information', function () {
         .get(ROUTE)
         .expect(200)
     })
-
-    it('should set isRepeatDuplicateClaim to false if claim type is not repeat duplicate', function () {
-      return supertest(app)
-        .get(ROUTE)
-        .expect(function (response) {
-          expect(response.text).to.contain('"isRepeatDuplicateClaim":false')
-        })
-    })
-
-    it('should set isRepeatDuplicateClaim to true if claim type is repeat duplicate', function () {
-      return supertest(app)
-        .get(REPEAT_DUPLICATE_ROUTE)
-        .expect(function (response) {
-          expect(response.text).to.contain('"isRepeatDuplicateClaim":true')
-        })
-    })
   })
 
   describe(`POST ${ROUTE}`, function () {
@@ -96,21 +82,11 @@ describe('routes/apply/eligibility/new-claim/journey-information', function () {
         .expect(302)
     })
 
-    it('should redirect to expenses page if child-visitor is set to no', function () {
+    it('should redirect to has-escort page if child-visitor is set to no', function () {
       insertNewClaimStub.resolves(CLAIM_ID)
       return supertest(app)
         .post(ROUTE)
-        .expect('location', `/apply/first-time/eligibility/${REFERENCEID}/claim/${CLAIM_ID}`)
-    })
-
-    it('should redirect to about-child page if child-visitor is set to yes', function () {
-      insertNewClaimStub.resolves(CLAIM_ID)
-      return supertest(app)
-        .post(ROUTE)
-        .send({
-          'child-visitor': 'yes'
-        })
-        .expect('location', `/apply/first-time/eligibility/${REFERENCEID}/claim/${CLAIM_ID}/child`)
+        .expect('location', `/apply/first-time/eligibility/${ENCRYPTED_REFERENCEID}/claim/${CLAIM_ID}/has-escort`)
     })
 
     it('should redirect to claim summary page if claim is repeat duplicate', function () {
@@ -118,7 +94,7 @@ describe('routes/apply/eligibility/new-claim/journey-information', function () {
       insertRepeatDuplicateClaimStub.resolves(CLAIM_ID)
       return supertest(app)
         .post(REPEAT_DUPLICATE_ROUTE)
-        .expect('location', `/apply/repeat-duplicate/eligibility/${REFERENCEID}/claim/${CLAIM_ID}/summary`)
+        .expect('location', `/apply/repeat-duplicate/eligibility/${ENCRYPTED_REFERENCEID}/claim/${CLAIM_ID}/summary`)
         .expect(function () {
           sinon.assert.calledWith(insertRepeatDuplicateClaimStub, REFERENCE, ELIGIBILITYID, REPEAT_DUPLICATE_CLAIM)
         })

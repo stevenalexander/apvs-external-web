@@ -1,7 +1,12 @@
+const internalEligibilityHelper = require('../helpers/data/internal/internal-eligibility-helper')
+const referenceHelper = require('../helpers/e2e/reference-helper')
 const dateFormatter = require('../../app/services/date-formatter')
 
 var todaysDate = dateFormatter.now()
 describe('First Time Claim Flow', () => {
+  // The reference will be generated as part of this flow. So capture it once it is generated.
+  var reference
+
   it('should display each page in the first time eligibility flow', () => {
     return browser.url('/')
 
@@ -45,7 +50,12 @@ describe('First Time Claim Flow', () => {
 
       // About you
       .waitForExist('#about-you-submit')
-      .setValue('#title-input', 'Mr')
+
+      // Capture the reference.
+      .getUrl().then(function (url) {
+        reference = referenceHelper.extractReference(url)
+      })
+
       .setValue('#first-name-input', 'Joe')
       .setValue('#last-name-input', 'Bloggs')
       .setValue('#national-insurance-number-input', 'AA123456A')
@@ -68,12 +78,32 @@ describe('First Time Claim Flow', () => {
       .setValue('#date-of-journey-day', todaysDate.date())
       .setValue('#date-of-journey-month', todaysDate.month() + 1)
       .setValue('#date-of-journey-year', todaysDate.year())
-      .click('[for="child-yes"]')
       .click('#journey-information-submit')
+
+      // Has Escort
+      .waitForExist('#has-escort-submit')
+      .click('[for="escort-yes"]')
+      .click('#has-escort-submit')
+
+      // Escort
+      .waitForExist('#about-escort-submit')
+      .setValue('#first-name-input', 'Frank')
+      .setValue('#last-name-input', 'Smith')
+      .setValue('#dob-day', '15')
+      .setValue('#dob-month', '07')
+      .setValue('#dob-year', '1985')
+      .setValue('#national-insurance-number-input', 'BB123456B')
+      .click('#about-escort-submit')
+
+      // Has Child
+      .waitForExist('#has-child-submit')
+      .click('[for="child-yes"]')
+      .click('#has-child-submit')
 
       // About Child #1
       .waitForExist('#about-child-submit')
-      .setValue('#child-name-input', 'Sam Bloggs')
+      .setValue('#first-name-input', 'Sam')
+      .setValue('#last-name-input', 'Bloggs')
       .setValue('#dob-day-input', '15')
       .setValue('#dob-month-input', '05')
       .setValue('#dob-year-input', '2014')
@@ -86,7 +116,8 @@ describe('First Time Claim Flow', () => {
 
       // About Child #2
       .waitForExist('#about-child-submit')
-      .setValue('#child-name-input', 'Lewis Bloggs')
+      .setValue('#first-name-input', 'Lewis')
+      .setValue('#last-name-input', 'Bloggs')
       .setValue('#dob-day-input', '20')
       .setValue('#dob-month-input', '12')
       .setValue('#dob-year-input', '2013')
@@ -106,10 +137,10 @@ describe('First Time Claim Flow', () => {
 
       // Bus #1 (adult expense)
       .waitForExist('#bus-details-submit')
+      .click('[for="is-child-ticket"]')
       .setValue('#from-input', 'Euston')
       .setValue('#to-input', 'Birmingham New Street')
       .click('[for="return-no"]')
-      .click('[for="is-child-no"]')
       .setValue('#cost-input', '20')
       .click('[for="add-another-journey"]')
       .click('#bus-details-submit')
@@ -119,10 +150,10 @@ describe('First Time Claim Flow', () => {
 
       // Bus #2 (add another journey) (child expense)
       .waitForExist('#bus-details-submit')
+      .click('[for="is-escort-ticket"]')
       .setValue('#from-input', 'Birmingham New Street')
       .setValue('#to-input', 'Euston')
       .click('[for="return-no"]')
-      .click('[for="is-child-yes"]')
       .setValue('#cost-input', '20')
       .click('#bus-details-submit')
 
@@ -169,9 +200,14 @@ describe('First Time Claim Flow', () => {
       .waitForExist('#bank-account-details-submit')
       .setValue('#account-number-input', '00123456')
       .setValue('#sort-code-input', '001122')
+      .click('[for="terms-and-conditions-input"]')
       .click('#bank-account-details-submit')
 
       // Application submitted
       .waitForExist('#reference')
+  })
+
+  after(function () {
+    return internalEligibilityHelper.deleteAll(reference)
   })
 })

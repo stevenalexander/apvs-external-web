@@ -2,6 +2,7 @@ const routeHelper = require('../../../../../helpers/routes/route-helper')
 const supertest = require('supertest')
 const proxyquire = require('proxyquire')
 const sinon = require('sinon')
+const encrypt = require('../../../../../../app/services/helpers/encrypt')
 require('sinon-bluebird')
 
 const ValidationError = require('../../../../../../app/services/errors/validation-error')
@@ -10,7 +11,9 @@ describe('routes/apply/eligibility/new-claim/same-journey-as-last-claim', functi
   const REFERENCE = 'SAMEJO'
   const ELIGIBILITYID = '1234'
   const REFERENCEID = `${REFERENCE}-${ELIGIBILITYID}`
-  const ROUTE = `/apply/repeat/eligibility/${REFERENCEID}/new-claim/same-journey-as-last-claim`
+  const ENCRYPTED_REFERENCEID = encrypt(REFERENCEID)
+  const ADVANCE_OR_PAST = 'past'
+  const ROUTE = `/apply/repeat/eligibility/${ENCRYPTED_REFERENCEID}/new-claim/same-journey-as-last-claim/${ADVANCE_OR_PAST}`
 
   var app
 
@@ -60,20 +63,20 @@ describe('routes/apply/eligibility/new-claim/same-journey-as-last-claim', functi
         })
     })
 
-    it('should redirect to ./past for a repeat claim if no', function () {
+    it('should redirect to /new-claim/past for a repeat claim if no', function () {
       sameJourneyAsLastClaimStub.returns({})
       return supertest(app)
         .post(ROUTE)
         .send({'same-journey-as-last-claim': 'no'})
-        .expect('location', `/apply/repeat/eligibility/${REFERENCEID}/new-claim/past`)
+        .expect('location', `/apply/repeat/eligibility/${ENCRYPTED_REFERENCEID}/new-claim/${ADVANCE_OR_PAST}`)
     })
 
-    it('should redirect to past for a repeat-duplicate claim if yes', function () {
+    it('should redirect to /new-claim/past for a repeat-duplicate claim if yes', function () {
       sameJourneyAsLastClaimStub.returns({})
       return supertest(app)
         .post(ROUTE)
         .send({'same-journey-as-last-claim': 'yes'})
-        .expect('location', `/apply/repeat-duplicate/eligibility/${REFERENCEID}/new-claim/past`)
+        .expect('location', `/apply/repeat-duplicate/eligibility/${ENCRYPTED_REFERENCEID}/new-claim/${ADVANCE_OR_PAST}`)
     })
 
     it('should respond with a 400 if domain object validation fails.', function () {

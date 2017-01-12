@@ -1,4 +1,5 @@
 const ExpenseTypeEnum = require('../../constants/expense-type-enum')
+const ticketOwnerEnum = require('../../constants/ticket-owner-enum')
 
 module.exports = function (expense) {
   var formattedDetail
@@ -10,20 +11,20 @@ module.exports = function (expense) {
     case 'bus':
     case 'plane':
     case 'train':
-      formattedDetail = `${addChildPrefix(expense)}${expense.From} to ${expense.To}${addReturnPostfix(expense)}`
+      formattedDetail = `${addTicketOwnerPrefix(expense)}${expense.From} to ${expense.To}${addReturnPostfix(expense)}`
       break
     case 'refreshment':
       if (expense.TravelTime === 'over-five') {
-        formattedDetail = 'Over five hours away but under ten hours'
+        formattedDetail = 'Over 5 hours away but under ten hours'
       } else {
-        formattedDetail = 'Over ten hours away'
+        formattedDetail = 'Over 10 hours away'
       }
       break
     case 'accommodation':
       formattedDetail = `Nights stayed: ${expense.DurationOfTravel}`
       break
     case 'ferry':
-      formattedDetail = `${addChildPrefix(expense)}${expense.From} to ${expense.To} as ${ExpenseTypeEnum.FERRY.ticketType[expense.TicketType]}${addReturnPostfix(expense)}`
+      formattedDetail = `${addTicketOwnerPrefix(expense)}${expense.From} to ${expense.To} as ${ExpenseTypeEnum.FERRY.ticketType[expense.TicketType]}${addReturnPostfix(expense)}`
       break
     default:
       formattedDetail = `${expense.From} to ${expense.To}`
@@ -32,12 +33,16 @@ module.exports = function (expense) {
   return formattedDetail
 }
 
-function addChildPrefix (expense) {
-  if (expense.IsChild) {
-    return 'Child - '
-  } else {
-    return ''
+function addTicketOwnerPrefix (expense) {
+  var result = ''
+
+  for (var ticketOwner in ticketOwnerEnum) {
+    if (ticketOwnerEnum[ticketOwner].value === expense.TicketOwner) {
+      result = ticketOwnerEnum[ticketOwner].displayValue + ' - '
+    }
   }
+
+  return result
 }
 
 function addReturnPostfix (expense) {

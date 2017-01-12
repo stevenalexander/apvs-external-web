@@ -7,20 +7,20 @@ const insertNewClaim = require('../../../../services/data/insert-new-claim')
 const insertRepeatDuplicateClaim = require('../../../../services/data/insert-repeat-duplicate-claim')
 
 module.exports = function (router) {
-  router.get('/apply/:claimType/eligibility/:referenceId/new-claim/past', function (req, res) {
+  router.get('/apply/:claimType/eligibility/:referenceId/new-claim/:advanceOrPast', function (req, res) {
     UrlPathValidator(req.params)
 
     return res.render('apply/eligibility/new-claim/journey-information', {
       claimType: req.params.claimType,
       referenceId: req.params.referenceId,
-      isRepeatDuplicateClaim: isRepeatDuplicateClaim(req.params.claimType)
+      advanceOrPast: req.params.advanceOrPast
     })
   })
 
-  router.post('/apply/:claimType/eligibility/:referenceId/new-claim/past', function (req, res, next) {
+  router.post('/apply/:claimType/eligibility/:referenceId/new-claim/:advanceOrPast', function (req, res, next) {
     UrlPathValidator(req.params)
     var referenceAndEligibilityId = referenceIdHelper.extractReferenceId(req.params.referenceId)
-    var repeatDuplicateClaim = isRepeatDuplicateClaim(req.params.claimType)
+    var isAdvancedClaim = req.params.advanceOrPast === 'advance'
 
     try {
       var newClaim = new NewClaim(
@@ -28,18 +28,13 @@ module.exports = function (router) {
         req.body['date-of-journey-day'],
         req.body['date-of-journey-month'],
         req.body['date-of-journey-year'],
-        req.body['child-visitor'],
-        repeatDuplicateClaim
+        isAdvancedClaim
       )
 
-      if (!repeatDuplicateClaim) {
+      if (!isRepeatDuplicateClaim(req.params.claimType)) {
         insertNewClaim(referenceAndEligibilityId.reference, referenceAndEligibilityId.id, req.params.claimType, newClaim)
           .then(function (claimId) {
-            if (req.body['child-visitor'] === 'yes') {
-              return res.redirect(`/apply/${req.params.claimType}/eligibility/${req.params.referenceId}/claim/${claimId}/child`)
-            } else {
-              return res.redirect(`/apply/${req.params.claimType}/eligibility/${req.params.referenceId}/claim/${claimId}`)
-            }
+            return res.redirect(`/apply/${req.params.claimType}/eligibility/${req.params.referenceId}/claim/${claimId}/has-escort`)
           })
           .catch(function (error) {
             next(error)
@@ -59,7 +54,7 @@ module.exports = function (router) {
           errors: error.validationErrors,
           claimType: req.params.claimType,
           referenceId: req.params.referenceId,
-          isRepeatDuplicateClaim: repeatDuplicateClaim,
+          advanceOrPast: req.params.advanceOrPast,
           claim: req.body
         })
       } else {

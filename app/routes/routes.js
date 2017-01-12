@@ -9,6 +9,9 @@ var routes = [
   require('./start-already-registered'),
   require('./eligibility-fail'),
   require('./application-submitted'),
+  require('./application-updated'),
+  require('./feedback'),
+  require('./terms-and-conditions'),
 
   // First Time Flow.
   require('./apply/new-eligibility/date-of-birth'),
@@ -19,6 +22,9 @@ var routes = [
   require('./apply/eligibility/new-claim/future-or-past-visit'),
   require('./apply/eligibility/new-claim/same-journey-as-last-claim'),
   require('./apply/eligibility/new-claim/journey-information'),
+  require('./apply/eligibility/claim/has-escort'),
+  require('./apply/eligibility/claim/about-escort'),
+  require('./apply/eligibility/claim/has-child'),
   require('./apply/eligibility/claim/about-child'),
   require('./apply/eligibility/claim/expenses'),
 
@@ -42,6 +48,7 @@ var routes = [
   require('./your-claims/your-claims'),
   require('./your-claims/check-your-information'),
   require('./your-claims/update-contact-details'),
+  require('./your-claims/view-claim'),
 
   // Health check routes
   require('./health-check/status')

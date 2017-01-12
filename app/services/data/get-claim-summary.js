@@ -15,6 +15,7 @@ module.exports = function (claimId, claimType) {
       'Claim.Reference',
       'Claim.DateSubmitted',
       'Claim.DateOfJourney',
+      'Claim.IsAdvanceClaim',
       'Visitor.FirstName',
       'Visitor.LastName',
       'Visitor.Benefit',
@@ -64,7 +65,9 @@ module.exports = function (claimId, claimType) {
             })
             .then(function (claimExpenses) {
               claimExpenses.forEach(function (expense) {
-                expense.Cost = Number(expense.Cost).toFixed(2)
+                if (expense.Cost % 1 !== 0) {
+                  expense.Cost = Number(expense.Cost).toFixed(2)
+                }
               })
               claim.benefitDocument = []
               claimDocuments.forEach(function (document) {
@@ -82,12 +85,27 @@ module.exports = function (claimId, claimType) {
             .join('ClaimChild', 'Claim.ClaimId', '=', 'ClaimChild.ClaimId')
             .where({ 'Claim.ClaimId': claimId, 'ClaimChild.IsEnabled': true })
             .select()
-            .orderBy('ClaimChild.Name')
+            .orderBy('ClaimChild.FirstName')
             .then(function (claimChild) {
               return {
-                claim: claim,
                 claimExpenses: claimExpenses,
                 claimChild: claimChild
+              }
+            })
+        })
+        .then(function (expensesAndChildren) {
+          return knex('ClaimEscort')
+            .where({
+              'ClaimEscort.ClaimId': claimId,
+              'ClaimEscort.IsEnabled': true
+            })
+            .first()
+            .then(function (claimEscort) {
+              return {
+                claim: claim,
+                claimExpenses: expensesAndChildren.claimExpenses,
+                claimChild: expensesAndChildren.claimChild,
+                claimEscort: claimEscort
               }
             })
         })

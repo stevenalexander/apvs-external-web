@@ -7,12 +7,14 @@ module.exports = {
   getIsRangeMessage: function (displayName, options) { return `${displayName} must be between ${options.min} and ${options.max} characters in length` },
   getIsLessThanLengthMessage: function (displayName, options) { return `${displayName} must be less than ${options.length} characters in length` },
   getInvalidDateFormatMessage: function (displayName) { return `${displayName} was invalid` },
-  getFutureDateMessage: function (displayName) { return `${displayName} must be in the past` },
+  getFutureDateMessage: function (displayName) { return `${displayName} must be in the future` },
+  getPastDateMessage: function (displayName) { return `${displayName} must be in the past` },
   getDropboxIsRequired: function (displayName) { return `${displayName} is required` },
   getIsValidFormat: function (displayName) { return `${displayName} must have valid format` },
   getIsCurrency: function (displayName) { return `${displayName} must be a valid amount` },
   getIsGreaterThan: function (displayName) { return `${displayName} must be greater than zero` },
   getDateSetDaysAway: function (displayName, options) { return `${displayName} must be within ${options.days} days` },
+  getNotDateSetDaysAway: function (displayName, options) { return `${displayName} must not be within ${options.days} days` },
   getIsYoungerThan: function (displayName, options) { return `Must be under ${options.years} years of age` },
   getIsOlderThan: function (displayName, options) { return `Must be over ${options.years} years of age` },
   getIsValidOption: function (displayName) { return `${displayName} must be a valid option` },
@@ -20,5 +22,7 @@ module.exports = {
   getUploadIncorrectType: 'File uploaded was not an image or pdf',
   getUploadFileAndAlternativeSelected: 'Both file uploaded and alternative option selected',
   getInvalidReferenceNumberAndDob: 'Could not find any claims for these details',
-  getMadeClaimForPrisonerBeforeIsRequired: 'You must confirm if you have made a claim before'
+  getMadeClaimForPrisonerBeforeIsRequired: 'You must confirm if you have made a claim before',
+  getNoUpdatesMade: 'No updates were made, please ensure all documents are uploaded for your application to be processed or send a message to your caseworker. Otherwise press cancel to return to your claims',
+  getInvalidReference: 'Reference is invalid'
 }

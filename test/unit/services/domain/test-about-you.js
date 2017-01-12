@@ -9,7 +9,6 @@ describe('services/domain/about-you', function () {
   const VALID_DOB = '1980-01-01'
   const VALID_RELATIONSHIP = 'partner'
   const VALID_BENEFIT = 'income-support'
-  const VALID_TITLE = 'Mr'
   const VALID_FIRSTNAME = 'Tester'
   const VALID_LASTNAME = 'Test'
   const VALID_NATIONALINSURANCENUMBER = 'aA 123456B'
@@ -24,7 +23,6 @@ describe('services/domain/about-you', function () {
   const INVALID_DOB = ''
   const INVALID_RELATIONSHIP = ''
   const INVALID_BENEFIT = ''
-  const INVALID_TITLE = ''
   const INVALID_FIRSTNAME = ''
   const INVALID_LASTNAME = ''
   const INVALID_NATIONALINSURANCENUMBER = ''
@@ -36,11 +34,18 @@ describe('services/domain/about-you', function () {
   const INVALID_EMAILADDRESS = ''
   const INVALID_PHONENUMBER = ''
 
+  const INVALID_CHARS_FIRSTNAME = 'Tester<&lt>>'
+  const INVALID_CHARS_LASTNAME = 'Tesgtt<&gt'
+  const INVALID_CHARS_HOUSENUMBERANDSTREET = '<Test Street>'
+  const INVALID_CHARS_TOWN = 'Testing<Town>'
+  const INVALID_CHARS_COUNTY = 'Tes>t&lt'
+  const INVALID_CHARS_COUNTRY = 'Northernlt <Ireland>'
+  const INVALID_CHARS_PHONENUMBER = '028&lgscript&gt12345>'
+
   it('should construct a domain object given valid input', function (done) {
     aboutYou = new AboutYou(VALID_DOB,
       VALID_RELATIONSHIP,
       VALID_BENEFIT,
-      VALID_TITLE,
       VALID_FIRSTNAME,
       VALID_LASTNAME,
       VALID_NATIONALINSURANCENUMBER,
@@ -55,7 +60,6 @@ describe('services/domain/about-you', function () {
     expect(aboutYou.dob).to.deep.equal(dateFormatter.buildFromDateString(VALID_DOB))
     expect(aboutYou.relationship).to.equal(VALID_RELATIONSHIP)
     expect(aboutYou.benefit).to.equal(VALID_BENEFIT)
-    expect(aboutYou.title).to.equal(VALID_TITLE)
     expect(aboutYou.firstName).to.equal(VALID_FIRSTNAME)
     expect(aboutYou.lastName).to.equal(VALID_LASTNAME)
     expect(aboutYou.nationalInsuranceNumber, 'should uppercase and remove whitespace').to.equal(VALID_NATIONALINSURANCENUMBER.replace(/ /g, '').toUpperCase())
@@ -77,7 +81,6 @@ describe('services/domain/about-you', function () {
       aboutYou = new AboutYou(INVALID_DOB,
         INVALID_RELATIONSHIP,
         INVALID_BENEFIT,
-        INVALID_TITLE,
         INVALID_FIRSTNAME,
         INVALID_LASTNAME,
         INVALID_NATIONALINSURANCENUMBER,
@@ -91,7 +94,6 @@ describe('services/domain/about-you', function () {
     } catch (e) {
       expect(e).to.be.instanceof(ValidationError)
 
-      expect(e.validationErrors['Title'][0]).to.contain(IS_REQUIRED)
       expect(e.validationErrors['FirstName'][0]).to.contain(IS_REQUIRED)
       expect(e.validationErrors['LastName'][0]).to.contain(IS_REQUIRED)
       expect(e.validationErrors['NationalInsuranceNumber'][0]).to.contain(IS_REQUIRED)
@@ -110,7 +112,6 @@ describe('services/domain/about-you', function () {
       aboutYou = new AboutYou(INVALID_DOB,
         INVALID_RELATIONSHIP,
         INVALID_BENEFIT,
-        INVALID_TITLE,
         INVALID_FIRSTNAME,
         INVALID_LASTNAME,
         '123456',
@@ -134,7 +135,6 @@ describe('services/domain/about-you', function () {
       aboutYou = new AboutYou(INVALID_DOB,
         INVALID_RELATIONSHIP,
         INVALID_BENEFIT,
-        INVALID_TITLE,
         INVALID_FIRSTNAME,
         INVALID_LASTNAME,
         INVALID_NATIONALINSURANCENUMBER,
@@ -148,7 +148,7 @@ describe('services/domain/about-you', function () {
     } catch (e) {
       expect(e).to.be.instanceof(ValidationError)
 
-      expect(e.validationErrors['PostCode'][0]).to.equal('Post code must have valid format')
+      expect(e.validationErrors['PostCode'][0]).to.equal('Postcode must have valid format')
     }
     done()
   })
@@ -158,7 +158,6 @@ describe('services/domain/about-you', function () {
       aboutYou = new AboutYou(INVALID_DOB,
         INVALID_RELATIONSHIP,
         INVALID_BENEFIT,
-        INVALID_TITLE,
         INVALID_FIRSTNAME,
         INVALID_LASTNAME,
         INVALID_NATIONALINSURANCENUMBER,
@@ -174,6 +173,39 @@ describe('services/domain/about-you', function () {
 
       expect(e.validationErrors['EmailAddress'][0]).to.equal('Email address must have valid format')
     }
+    done()
+  })
+
+  it('should strip illegal characters from fields which accept free text inputs', function (done) {
+    const unsafeInputPattern = new RegExp(/>|<|&lt|&gt/g)
+    aboutYou = new AboutYou(VALID_DOB,
+      VALID_RELATIONSHIP,
+      VALID_BENEFIT,
+      INVALID_CHARS_FIRSTNAME,
+      INVALID_CHARS_LASTNAME,
+      VALID_NATIONALINSURANCENUMBER,
+      VALID_HOUSENUMBERANDSTREET,
+      INVALID_CHARS_TOWN,
+      INVALID_CHARS_COUNTY,
+      VALID_POSTCODE,
+      INVALID_CHARS_COUNTRY,
+      VALID_EMAILADDRESS,
+      INVALID_CHARS_PHONENUMBER)
+
+    expect(aboutYou.dob).to.deep.equal(dateFormatter.buildFromDateString(VALID_DOB))
+    expect(aboutYou.relationship).to.equal(VALID_RELATIONSHIP)
+    expect(aboutYou.benefit).to.equal(VALID_BENEFIT)
+    expect(aboutYou.firstName).to.equal(INVALID_CHARS_FIRSTNAME.replace(unsafeInputPattern, ''))
+    expect(aboutYou.lastName).to.equal(INVALID_CHARS_LASTNAME.replace(unsafeInputPattern, ''))
+    expect(aboutYou.nationalInsuranceNumber, 'should uppercase and remove whitespace').to.equal(VALID_NATIONALINSURANCENUMBER.replace(/ /g, '').toUpperCase())
+    expect(aboutYou.houseNumberAndStreet).to.equal(INVALID_CHARS_HOUSENUMBERANDSTREET.replace(unsafeInputPattern, ''))
+    expect(aboutYou.town).to.equal(INVALID_CHARS_TOWN.replace(unsafeInputPattern, ''))
+    expect(aboutYou.county).to.equal(INVALID_CHARS_COUNTY.replace(unsafeInputPattern, ''))
+    expect(aboutYou.postCode, 'should uppercase and remove whitespace').to.equal(VALID_POSTCODE.replace(/ /g, '').toUpperCase())
+    expect(aboutYou.country).to.equal(INVALID_CHARS_COUNTRY.replace(unsafeInputPattern, ''))
+    expect(aboutYou.emailAddress).to.equal(VALID_EMAILADDRESS)
+    expect(aboutYou.phoneNumber).to.equal(INVALID_CHARS_PHONENUMBER.replace(unsafeInputPattern, ''))
+
     done()
   })
 })

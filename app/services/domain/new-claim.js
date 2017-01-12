@@ -5,11 +5,10 @@ const ErrorHandler = require('../validators/error-handler')
 const dateFormatter = require('../date-formatter')
 
 class NewClaim {
-  constructor (reference, day, month, year, childVisitor, isRepeatDuplicateClaim) {
+  constructor (reference, day, month, year, isAdvanceClaim) {
     this.reference = reference
     this.dateOfJourney = dateFormatter.build(day, month, year)
-    this.childVisitor = childVisitor ? childVisitor.trim() : ''
-    this.isRepeatDuplicateClaim = isRepeatDuplicateClaim
+    this.isAdvanceClaim = isAdvanceClaim
     this.IsValid()
   }
 
@@ -19,15 +18,17 @@ class NewClaim {
     FieldValidator(this.reference, 'Reference', errors)
       .isRequired()
 
-    FieldsetValidator(this.dateOfJourney, 'DateOfJourney', errors)
-      .isValidDate(this.dateOfJourney)
-      .isPastDate(this.dateOfJourney)
-      .isDateWithinDays(this.dateOfJourney, 28)
-
-    if (!this.isRepeatDuplicateClaim) {
-      FieldValidator(this.childVisitor, 'child-visitor', errors)
-        .isRequired()
-        .isValidBooleanSelect()
+    if (!this.isAdvanceClaim) {
+      FieldsetValidator(this.dateOfJourney, 'DateOfJourney', errors)
+        .isValidDate(this.dateOfJourney)
+        .isPastDate(this.dateOfJourney)
+        .isDateWithinDays(this.dateOfJourney, 28)
+    } else {
+      FieldsetValidator(this.dateOfJourney, 'DateOfJourney', errors)
+        .isValidDate(this.dateOfJourney)
+        .isFutureDate(this.dateOfJourney)
+        .isDateWithinDays(this.dateOfJourney, 28)
+        .isNotDateWithinDays(this.dateOfJourney, 5)
     }
 
     var validationErrors = errors.get()

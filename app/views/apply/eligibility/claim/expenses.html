@@ -25,6 +25,7 @@
       <form action="/apply/{{ claimType }}/eligibility/{{ referenceId }}/claim/{{ claimId }}" method="post">
         <div class="form-group">
 
+        {% if not isNorthernIrelandClaim %}
           <fieldset>
 
             <label for="car" class="block-label">
@@ -32,7 +33,7 @@
                      type="checkbox"
                      name="expenses"
                      value="car">
-              Car/Motorcycle
+              Car or Motorcycle
             </label>
             <label for="train" class="block-label">
               <input id="train"
@@ -53,7 +54,7 @@
                      type="checkbox"
                      name="expenses"
                      value="hire">
-              Car Hire
+              Car hire
             </label>
             <label for="taxi" class="block-label">
               <input id="taxi"
@@ -103,6 +104,40 @@
             </label>
 
           </fieldset>
+        {% else %}
+          <fieldset>
+
+            <label for="car-only" class="block-label">
+              <input id="car-only"
+                     type="checkbox"
+                     name="expenses"
+                     value="car-only">
+              Car/Motorcycle
+            </label>
+            <label for="train" class="block-label">
+              <input id="train"
+                     type="checkbox"
+                     name="expenses"
+                     value="train">
+              Train (standard class)
+            </label>
+            <label for="bus" class="block-label">
+              <input id="bus"
+                     type="checkbox"
+                     name="expenses"
+                     value="bus">
+              Bus
+            </label>
+            <label for="taxi" class="block-label">
+              <input id="taxi"
+                     type="checkbox"
+                     name="expenses"
+                     value="taxi">
+              Taxi
+            </label>
+
+          </fieldset>
+        {% endif %}
 
         </div>
 

@@ -10,17 +10,18 @@
 
   {% include "includes/phase_banner_beta.html" %}
 
+  <br>
   <div class="grid-row">
 
     <div class="column-two-thirds">
       <h1 class="heading-large push-top">
-        <span class="heading-secondary">Reference no.</span>{{ reference }}
+        <span class="heading-secondary">Reference number</span>{{ reference }}
       </h1>
     </div>
 
     <div class="column-one-third">
       {% if canStartNewClaim %}
-      <a id="new-claim" class="button heading-large" href="/your-claims/{{ dob }}/{{ reference }}/check-your-information" role="button">Start a new claim</a>
+      <a id="new-claim" class="button heading-large" href="/your-claims/{{ dob }}/{{ encryptedReference }}/check-your-information" role="button">Start a new claim</a>
       {% endif %}
     </div>
 
@@ -39,7 +40,7 @@
     </div>
 
     <div class="column-one-third">
-      <span class="text-secondary">Prisoner no.</span>
+      <span class="text-secondary">Prisoner number</span>
       <div class="bold-small">{{ claims[0].PrisonNumber }}</div>
     </div>
 
@@ -50,23 +51,45 @@
   <hr>
 
   <h3 class="heading-medium">
-    Your claim(s)
+    Your claim{% if claims[1] %}s{% endif %}
   </h3>
 
   <table>
 
     <tr>
-      <th>Date of claim</th>
-      <th>Status</th>
+      <th>Date sent</th>
+      <th>Date of visit</th>
+      <th>Progress</th>
       <th></th>
     </tr>
 
     {% for claim in claims %}
-      <tr>
+      <tr {% if forEdit(claim.Status) %} class='warning' {% endif %}>
+        <td>{{ dateHelper(claim.DateSubmitted) }}
         <td>{{ dateHelper(claim.DateOfJourney) }}</td>
-        <td>{{ claimStatusHelper(claim.Status) }}</td>
-        <!-- TODO: Need to redirect to a real page. -->
-        <td><a href="#{{ claim.ClaimId }}">View</a></td>
+        <td
+          {% if claim.IsAdvanceClaim %}
+            {% if claim.Status == 'APPROVED-ADVANCE-CLOSED' %}
+              >Approved
+            {% elif forEdit(claim.Status, claim.IsAdvanceClaim, claim.DateOfJourney) %}
+              class ="text-warning your-claims">Information needed
+            {% elif claim.Status == 'APPROVED' %}
+              class ="text-pending your-claims">Information needed after visit takes place
+            {% else %}
+              class ="text-pending your-claims">In progress
+            {% endif %}
+
+          {% else %}
+            >{{ claimStatusHelper(claim.Status) }}
+          {% endif %}
+        </td>
+        <td><a id="add-info" href="/your-claims/{{ dob }}/{{ encryptedReference }}/{{ claim.ClaimId }}"
+        {% if forEdit(claim.Status, claim.IsAdvanceClaim, claim.DateOfJourney) %}
+          class="button grey"> Add information
+        {% else %}
+          >View
+        {% endif %}
+        </a></td>
       </tr>
     {% endfor %}
 

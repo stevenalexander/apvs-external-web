@@ -62,7 +62,6 @@ describe('Repeat claim with new eligibility details', function () {
 
       // About you
       .waitForExist('#about-you-submit')
-      .setValue('#title-input', 'Mr')
       .setValue('#first-name-input', 'Joe')
       .setValue('#last-name-input', 'Bloggs')
       .setValue('#national-insurance-number-input', 'AA123456A')
@@ -85,8 +84,17 @@ describe('Repeat claim with new eligibility details', function () {
       .setValue('#date-of-journey-day', todaysDate.date())
       .setValue('#date-of-journey-month', todaysDate.month() + 1)
       .setValue('#date-of-journey-year', todaysDate.year())
-      .click('[for="child-no"]')
       .click('#journey-information-submit')
+
+      // Has Escort
+      .waitForExist('#has-escort-submit')
+      .click('[for="escort-no"]')
+      .click('#has-escort-submit')
+
+      // Has Child
+      .waitForExist('#has-child-submit')
+      .click('[for="child-no"]')
+      .click('#has-child-submit')
 
       // Expense
       .waitForExist('#expenses-submit')
@@ -98,7 +106,6 @@ describe('Repeat claim with new eligibility details', function () {
       .setValue('#from-input', 'Euston')
       .setValue('#to-input', 'Birmingham New Street')
       .click('[for="return-no"]')
-      .click('[for="is-child-no"]')
       .setValue('#cost-input', '20')
       .click('#bus-details-submit')
 
@@ -128,9 +135,14 @@ describe('Repeat claim with new eligibility details', function () {
       .waitForExist('#bank-account-details-submit')
       .setValue('#account-number-input', '00123456')
       .setValue('#sort-code-input', '001122')
+      .click('[for="terms-and-conditions-input"]')
       .click('#bank-account-details-submit')
 
       // Application submitted
       .waitForExist('#reference')
+  })
+
+  after(function () {
+    return internalEligibilityHelper.deleteAll(REFERENCE)
   })
 })

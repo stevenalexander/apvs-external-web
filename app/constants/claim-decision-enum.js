@@ -1,6 +1,9 @@
 module.exports = {
-  APPROVED: 'Approved',
-  REQUEST_INFORMATION: 'Information requested',
-  REJECTED: 'Rejected',
-  NEW: 'In progress'
+  'APPROVED': 'Approved',
+  'APPROVED-DIFF-AMOUNT': 'Approved alternative amount',
+  'REQUEST-INFORMATION': 'Information requested',
+  'REQUEST-INFO-PAYMENT': 'Payment information requested',
+  'PENDING': 'Pending',
+  'REJECTED': 'Rejected',
+  'NEW': 'In progress'
 }

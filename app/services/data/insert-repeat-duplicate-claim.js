@@ -14,7 +14,15 @@ module.exports = function (reference, eligibilityId, claim) {
     .then(function () { return getLastClaimDetails(reference, eligibilityId) })
     .then(function (claimDetails) { lastClaimDetails = claimDetails })
     .then(function () { return insertClaimDetail('ClaimChild', reference, eligibilityId, claimId, lastClaimDetails.children) })
-    .then(function () { return insertClaimDetail('ClaimExpense', reference, eligibilityId, claimId, lastClaimDetails.expenses) })
+    .then(function () {
+      lastClaimDetails.expenses.forEach(function (expense) {
+        delete expense.Status
+      })
+      return insertClaimDetail('ClaimExpense', reference, eligibilityId, claimId, lastClaimDetails.expenses)
+    })
+    .then(function () {
+      return insertClaimDetail('ClaimEscort', reference, eligibilityId, claimId, lastClaimDetails.escort)
+    })
     .then(function () { return claimId })
 }
 
@@ -25,6 +33,7 @@ function insertClaimDetail (tableName, reference, eligibilityId, claimId, claimD
       claimDetail.EligibilityId = eligibilityId
       claimDetail.ClaimId = claimId
       claimDetail.IsEnabled = true
+      delete claimDetail.ClaimExpenseId
     })
 
     return knex(tableName).insert(claimDetails)
